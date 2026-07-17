@@ -1,0 +1,6 @@
+# Environment / secrets
+.env
+.env.*
+
+# Claude Code local (personal, machine-specific) settings
+.claude/settings.local.json
