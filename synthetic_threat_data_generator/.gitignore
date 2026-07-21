@@ -1,0 +1,10 @@
+.env
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Generated benchmark releases (large binary/data output, not source)
+datasets/

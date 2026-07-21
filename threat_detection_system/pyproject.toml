@@ -1,0 +1,54 @@
+[tool.poetry]
+name = "threat-detection-system"
+version = "0.1.0"
+description = "Enterprise multi-agent threat detection platform (audio + transcript intelligence)."
+authors = ["forumans"]
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.12"
+# Backend
+fastapi = "^0.115"
+uvicorn = "^0.32"
+pydantic = "^2.13"
+pydantic-settings = "^2.6"
+sqlalchemy = "^2.0"
+# Agent orchestration / development
+langgraph = "^0.2"
+pydantic-ai = "^2.12"
+# LLM abstraction (defaults to OpenAI -- see src/config.py)
+litellm = "^1.92"
+openai = "^2.46"
+# Speech-to-text
+faster-whisper = "^1.0"
+# Speaker diarization (gated HF model; requires HUGGINGFACE_TOKEN, see .env.example)
+pyannote-audio = "^3.3"
+# Audio processing / prosody
+librosa = "^0.11"
+torchaudio = "^2.5"
+pydub = "^0.25"
+soundfile = "^0.12"
+# Voice activity detection
+silero-vad = "^5.1"
+# Emotion recognition
+speechbrain = "^1.0"
+# NLP (available for future transcript-agent enhancements)
+spacy = "^3.8"
+transformers = "^4.46"
+sentence-transformers = "^3.3"
+# Config
+pyyaml = "^6.0"
+python-dotenv = "^1.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^9.1"
+pytest-mock = "^3.14"
+hypothesis = "^6.115"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]

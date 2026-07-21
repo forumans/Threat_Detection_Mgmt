@@ -4,3 +4,6 @@
 
 # Claude Code local (personal, machine-specific) settings
 .claude/settings.local.json
+
+# Prompt logs (local reference only, not published) — matches at any depth
+prompts/

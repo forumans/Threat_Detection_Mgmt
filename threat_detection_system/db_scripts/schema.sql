@@ -1,7 +1,7 @@
 -- ============================================================================
 -- Threat Detection System — Database DDL
 --
--- Generated from: threat_detection_system/docs/threat_detection_database-model.md
+-- Generated from: threat_detection_system/docs/database/threat_detection_database-model.md
 -- Target: PostgreSQL 13+
 --
 -- To provision from scratch (run as a superuser / role with CREATEDB):
