@@ -8,7 +8,8 @@
       "Bash(\".venv/Scripts/python.exe\" -m pytest tests/test_tts_engine_agent.py -v)",
       "Bash(\".venv/Scripts/python.exe\" -m piper.download_voices --download-dir configs/voices en_US-ryan-high en_US-lessac-medium)",
       "Bash(git check-ignore *)",
-      "Bash(grep -iE \"\\\\.env$|\\\\.venv|__pycache__|\\\\.pyc$|datasets/|\\\\.pytest_cache|configs/voices|\\\\.onnx\")"
+      "Bash(grep -iE \"\\\\.env$|\\\\.venv|__pycache__|\\\\.pyc$|datasets/|\\\\.pytest_cache|configs/voices|\\\\.onnx\")",
+      "Bash(git commit -m ' *)"
     ]
   }
 }
