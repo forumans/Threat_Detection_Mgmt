@@ -139,7 +139,7 @@ Each box above is one agent, detailed below in pipeline order. Every agent accep
 | Backend | FastAPI, Uvicorn |
 | Validation | Pydantic v2 |
 | ORM | SQLAlchemy, Alembic |
-| Orchestration | LangGraph (optional) |
+| Orchestration | LangGraph |
 | LLM Abstraction | LiteLLM |
 | Agent Framework | PydanticAI |
 | Prompt Templates | Jinja2 |

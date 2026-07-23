@@ -17,12 +17,17 @@ from src.schemas import ConversationTurn
 class _FakeVoice:
     def __init__(self, sample_rate: int = 22050):
         self.config = SimpleNamespace(sample_rate=sample_rate)
+        self._sample_rate = sample_rate
 
-    def synthesize_stream_raw(self, text: str):
-        # A short, fixed int16 PCM buffer, split into two "streamed" chunks.
-        samples = np.array([1000, -1000, 2000, -2000], dtype=np.int16)
-        yield samples[:2].tobytes()
-        yield samples[2:].tobytes()
+    def synthesize(self, text: str):
+        # Two fake AudioChunk-shaped objects, matching PiperVoice's real API:
+        # already-normalized float32 samples plus a sample_rate per chunk.
+        yield SimpleNamespace(
+            audio_float_array=np.array([0.1, -0.1], dtype=np.float32), sample_rate=self._sample_rate
+        )
+        yield SimpleNamespace(
+            audio_float_array=np.array([0.2, -0.2], dtype=np.float32), sample_rate=self._sample_rate
+        )
 
 
 def test_one_clip_is_produced_per_turn(monkeypatch):

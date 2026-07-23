@@ -76,10 +76,17 @@ def _load_voice(voice_name: str):
 
 
 def _synthesize_to_array(voice, text: str) -> tuple[np.ndarray, int]:
-    """Step 3 + 4: run Piper synthesis and normalize the result to float32 PCM."""
-    raw_pcm = b"".join(voice.synthesize_stream_raw(text))
-    samples = np.frombuffer(raw_pcm, dtype=np.int16).astype(np.float32) / 32768.0
-    return samples, voice.config.sample_rate
+    """Step 3 + 4: run Piper synthesis, concatenating its chunks into one array.
+
+    `PiperVoice.synthesize()` yields `AudioChunk`s, each already carrying a
+    normalized float32 `audio_float_array` plus the model's `sample_rate` --
+    no manual int16-to-float conversion needed.
+    """
+    chunks = list(voice.synthesize(text))
+    if not chunks:
+        return np.array([], dtype=np.float32), voice.config.sample_rate
+    samples = np.concatenate([c.audio_float_array for c in chunks]).astype(np.float32)
+    return samples, chunks[0].sample_rate
 
 
 def synthesize_turns(turns: list[ConversationTurn], personas: list[Persona]) -> list[TurnAudioClip]:

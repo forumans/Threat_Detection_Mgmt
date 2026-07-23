@@ -28,20 +28,37 @@ Shared typed contracts (`Configuration`, `Scenario`, `Conversation`,
 `src/config.py`. The LLM abstraction (LiteLLM for plain-text generation,
 PydanticAI for structured generation) is in `src/llm_client.py`.
 
-Orchestrating these agents into the full LangGraph pipeline (per architecture
-doc §3) is not yet implemented -- each agent is independently callable and
-tested, ready to be wired into that graph next. A rough end-to-end call order,
-matching the pipeline diagram:
+## Orchestration
+
+`src/orchestration/graph.py` wires 10 of the 11 agents (everything except
+Configuration, which validates a whole batch once, not per sample) into a
+LangGraph pipeline that produces one sample: Scenario -> Persona ->
+Conversation run as a strict chain, then Ground Truth -> Transcript ->
+Translation -> TTS -> Audio Generator run sequentially while Metadata
+Generator runs independently, and Dataset Exporter joins the two. Call it via:
 
 ```python
-config = configuration_agent.build_configuration(...)
-scenario = scenario_generator_agent.generate_scenario(config, sample_index=0)
-personas = persona_generator_agent.generate_personas(scenario)
-conversation = conversation_generator_agent.generate_conversation(scenario, personas)
-transcript = transcript_generator_agent.generate_transcript(conversation, personas)
-ground_truth = ground_truth_generator_agent.generate_ground_truth(conversation, scenario)
-# ... translate per target locale, then TTS Engine -> Audio Generator -> Dataset Exporter
+from src.orchestration.graph import generate_dataset
+
+manifest = generate_dataset(
+    category_distribution={"benign": 0.5, "verbal_abuse": 0.5},
+    sample_count=10,
+    locales=["en-US"],
+    dataset_version="v1",
+    output_dir="datasets/v1",
+)
 ```
+
+Ground Truth Generator runs sequentially rather than in true parallel with
+the transcript branch, which the architecture doc's diagram depicts as
+parallel -- a deliberate LangGraph-specific adaptation, not a change in what
+Ground Truth Generator depends on. See `src/orchestration/graph.py`'s module
+docstring for the full "why," including a real LangGraph gotcha it ran into:
+`defer=True` (the usual fix for a join whose predecessors sit at unequal
+depth) is documented as deferring a node "until the run is about to end" --
+built for one true terminal barrier, not a chain of intermediate joins. Using
+it on two chained joins caused the later one to fire before the earlier one
+had even run.
 
 ## Setup
 
@@ -54,8 +71,17 @@ copy .env.example .env                   # then fill in real values
 Only `OPENAI_API_KEY` is required to exercise the LLM-based agents (Scenario,
 Persona, Conversation, Transcript, Translation Generators). The TTS Engine
 additionally needs `piper-tts` installed and voice models downloaded into
-`PIPER_VOICES_DIR` (see `.env.example`) -- not installed by default, since it's
-a heavy, optional dependency the unit tests don't need.
+`PIPER_VOICES_DIR` (see `.env.example`) -- not installed by default, since
+it's a heavy, optional dependency the unit tests don't need:
+
+```powershell
+.venv\Scripts\pip install piper-tts
+.venv\Scripts\python -m piper.download_voices --download-dir configs\voices en_US-amy-medium en_US-ryan-high en_US-lessac-medium
+```
+
+(All three -- not just the default voice -- since `tts_engine_agent.py`
+deterministically assigns each persona one of the three; a run can hit any of
+them. Downloaded files land in `configs/voices/`, which is gitignored.)
 
 ## Running tests
 
@@ -68,4 +94,7 @@ Piper voice loader are mocked/monkeypatched, so the suite runs in seconds with
 no API keys, model downloads, or GPU required. Persona Generator, Metadata
 Generator, Audio Generator, and Dataset Exporter use real Faker/pydub/file I/O
 against synthetic data rather than mocks, since those dependencies are
-lightweight and deterministic.
+lightweight and deterministic. `test_orchestration_graph.py` covers the
+graph's wiring the same way -- every agent function mocked, verifying each
+node runs exactly once and `generate_dataset` produces one sample per
+requested count.

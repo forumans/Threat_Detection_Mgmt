@@ -15,7 +15,7 @@ pydantic-settings = "^2.6"
 sqlalchemy = "^2.0"
 alembic = "^1.14"
 # Agent orchestration / development
-langgraph = "^0.2"
+langgraph = "^1.2"
 pydantic-ai = "^2.13"
 # LLM abstraction (defaults to OpenAI -- see src/config.py)
 litellm = "^1.92"
@@ -23,7 +23,7 @@ openai = "^2.46"
 jinja2 = "^3.1"
 # Translation (LLM-based by default; NLLB/MarianMT optional, see translation_engine_agent.py)
 # TTS
-piper-tts = "^1.2"
+piper-tts = "^1.5"
 # Audio processing
 ffmpeg-python = "^0.2"
 pydub = "^0.25"

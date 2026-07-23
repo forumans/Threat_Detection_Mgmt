@@ -8,3 +8,7 @@ __pycache__/
 
 # Generated benchmark releases (large binary/data output, not source)
 datasets/
+
+# Downloaded Piper voice models (large binaries, fetched via
+# `python -m piper.download_voices`, not source -- see .env.example)
+configs/voices/

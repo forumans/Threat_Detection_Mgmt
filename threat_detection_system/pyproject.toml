@@ -14,7 +14,7 @@ pydantic = "^2.13"
 pydantic-settings = "^2.6"
 sqlalchemy = "^2.0"
 # Agent orchestration / development
-langgraph = "^0.2"
+langgraph = "^1.2"
 pydantic-ai = "^2.12"
 # LLM abstraction (defaults to OpenAI -- see src/config.py)
 litellm = "^1.92"

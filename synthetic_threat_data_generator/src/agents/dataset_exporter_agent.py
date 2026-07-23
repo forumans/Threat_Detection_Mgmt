@@ -104,8 +104,12 @@ def export_sample(
     sample_dir = Path(output_dir) / sample_id
     sample_dir.mkdir(parents=True, exist_ok=True)
 
+    # Moved, not copied: audio_file.path is the Audio Generator's staging
+    # output, written solely to be exported here -- moving it avoids leaving
+    # an orphaned duplicate behind (the orchestration graph relies on this to
+    # keep its per-sample staging directory empty after each export).
     audio_dest = sample_dir / "audio.wav"
-    shutil.copyfile(audio_file.path, audio_dest)
+    shutil.move(audio_file.path, audio_dest)
 
     # NOTE: encoding="utf-8" is explicit everywhere below -- Path.write_text()
     # defaults to the OS locale encoding on Windows (often cp1252), which would

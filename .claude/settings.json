@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(.venv/Scripts/python.exe -c ' *)",
+      "Bash(\".venv/Scripts/python.exe\" -m piper.download_voices --help)",
+      "Bash(mkdir -p configs/voices)",
+      "Bash(\".venv/Scripts/python.exe\" -m piper.download_voices --download-dir configs/voices en_US-amy-medium)",
+      "Bash(\".venv/Scripts/python.exe\" -m pytest tests/test_tts_engine_agent.py -v)",
+      "Bash(\".venv/Scripts/python.exe\" -m piper.download_voices --download-dir configs/voices en_US-ryan-high en_US-lessac-medium)",
+      "Bash(git check-ignore *)",
+      "Bash(grep -iE \"\\\\.env$|\\\\.venv|__pycache__|\\\\.pyc$|datasets/|\\\\.pytest_cache|configs/voices|\\\\.onnx\")"
+    ]
+  }
+}

@@ -30,9 +30,27 @@ are in `src/schemas.py`. Runtime configuration is in `src/config.py`. The LLM
 abstraction (LiteLLM for plain-text summaries, PydanticAI for structured
 detection output) is in `src/llm_client.py`.
 
-Orchestrating these agents into the full LangGraph pipeline (per architecture
-doc §4) is not yet implemented -- each agent is independently callable and
-tested, ready to be wired into that graph next.
+## Orchestration
+
+`src/orchestration/graph.py` wires all 12 agents into the LangGraph pipeline
+from architecture doc §4: Speech-to-Text, Speaker Diarization, and Background
+Audio Detection fan out from the raw audio; Prosody and Emotion follow once
+diarization completes; the transcript-detection agents fan out once
+Speech-to-Text and Speaker Diarization are merged into a diarized transcript;
+both domains join at their Correlation agent, and both Correlation outputs
+join at the Decision agent. Call it via:
+
+```python
+from src.orchestration.graph import run_pipeline
+assessment = run_pipeline(call_id="call-1", audio_path="path/to/call.wav")
+```
+
+Building this surfaced a real LangGraph gotcha, documented in the module's
+docstring: its default fan-in fires a join node as soon as *any* one incoming
+edge completes, not once *all* of them have, which breaks silently when a
+join's predecessors sit at different depths from the graph's start (exactly
+the case for Audio Correlation and the final Decision node here). See
+`src/orchestration/graph.py` and `src/orchestration/state.py` for the fix.
 
 ## Setup
 
@@ -62,4 +80,6 @@ pyannote.audio, SpeechBrain, Silero VAD) and the LLM mocked/monkeypatched, so
 the full suite runs in seconds with no API keys, model downloads, or GPU
 required. Prosody Analysis is the one exception -- it uses real librosa
 signal processing on synthetic audio rather than a mock, since that
-dependency is lightweight and deterministic.
+dependency is lightweight and deterministic. `test_orchestration_graph.py`
+covers the graph's wiring the same way -- every agent function mocked,
+verifying each node runs exactly once and the right data reaches each join.
