@@ -55,6 +55,7 @@ _EMOTION_SEVERITY: dict[str, Severity] = {
 
 @lru_cache(maxsize=1)
 def _load_classifier(model_name: str):
+    """Load (and cache, via lru_cache) the SpeechBrain emotion-recognition classifier."""
     # Imported lazily: speechbrain pulls in torch, a heavy, optional dependency
     # that unit tests (which monkeypatch this function) never need to install.
     from speechbrain.inference.interfaces import foreign_class

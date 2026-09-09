@@ -69,6 +69,7 @@ Other details:
 from __future__ import annotations
 
 import tempfile
+from collections.abc import Callable
 from functools import lru_cache
 from pathlib import Path
 
@@ -101,15 +102,18 @@ _CANONICAL_SOURCE_LOCALE = "en-US"
 
 
 def _scenario_node(state: GenerationState) -> dict:
+    """Graph node: run Scenario Generator for this sample's index within the batch."""
     scenario = scenario_generator_agent.generate_scenario(state["configuration"], sample_index=state["sample_index"])
     return {"scenario": scenario}
 
 
 def _personas_node(state: GenerationState) -> dict:
+    """Graph node: run Persona Generator for the scenario produced by _scenario_node."""
     return {"personas": persona_generator_agent.generate_personas(state["scenario"])}
 
 
 def _conversation_node(state: GenerationState) -> dict:
+    """Graph node: run Conversation Generator, producing the canonical per-sample Conversation."""
     conversation = conversation_generator_agent.generate_conversation(state["scenario"], state["personas"])
     return {"conversation": conversation}
 
@@ -118,16 +122,19 @@ def _conversation_node(state: GenerationState) -> dict:
 
 
 def _ground_truth_node(state: GenerationState) -> dict:
+    """Graph node: run Ground Truth Generator directly off the canonical Conversation."""
     ground_truth = ground_truth_generator_agent.generate_ground_truth(state["conversation"], state["scenario"])
     return {"ground_truth": ground_truth}
 
 
 def _transcript_node(state: GenerationState) -> dict:
+    """Graph node: run Transcript Generator, rendering the conversation plan into dialogue text."""
     transcript = transcript_generator_agent.generate_transcript(state["conversation"], state["personas"])
     return {"transcript": transcript}
 
 
 def _translation_node(state: GenerationState) -> dict:
+    """Graph node: run Translation Engine from the canonical source locale to the scenario's locale."""
     translated = translation_engine_agent.translate_transcript(
         state["transcript"], source_locale=_CANONICAL_SOURCE_LOCALE, target_locale=state["scenario"].locale
     )
@@ -135,11 +142,13 @@ def _translation_node(state: GenerationState) -> dict:
 
 
 def _tts_node(state: GenerationState) -> dict:
+    """Graph node: run TTS Engine, synthesizing each (possibly translated) turn to speech."""
     clips = tts_engine_agent.synthesize_turns(state["translated_transcript"], state["personas"])
     return {"audio_clips": clips}
 
 
 def _audio_node(state: GenerationState) -> dict:
+    """Graph node: run Audio Generator, mixing the TTS clips and reconciling ground-truth timing."""
     sample_id = state["conversation"].conversation_id
     # A staging path for the mixed track -- export_sample() moves it into the
     # final samples/<sample_id>/audio.wav, so nothing lingers here afterward.
@@ -154,11 +163,13 @@ def _audio_node(state: GenerationState) -> dict:
 
 
 def _metadata_node(state: GenerationState) -> dict:
+    """Graph node: run Metadata Generator, independently of the audio/ground-truth chain."""
     metadata = metadata_generator_agent.generate_metadata(state["conversation"], state["scenario"])
     return {"metadata": metadata}
 
 
 def _export_node(state: GenerationState) -> dict:
+    """Graph node: run Dataset Exporter, joining the finished audio with the metadata."""
     sample_id = state["conversation"].conversation_id
     sample_ref = dataset_exporter_agent.export_sample(
         sample_id,
@@ -230,11 +241,17 @@ def generate_dataset(
     dataset_version: str,
     output_dir: str | Path,
     seed: int | None = None,
+    on_sample_done: Callable[[int, int, Scenario], None] | None = None,
 ) -> DatasetManifest:
     """
     Step 5: validate the batch request once (Configuration Agent), generate
     every requested sample through the per-sample graph, then aggregate them
     into one versioned release manifest (Dataset Exporter's write_manifest).
+
+    `on_sample_done`, if given, is called after each sample finishes with
+    (completed_count, total_count, scenario) -- each sample runs several LLM
+    and TTS calls, so a multi-sample batch can take minutes with no other
+    feedback otherwise. `generate.py` (the CLI) uses this to print progress.
     """
     configuration = configuration_agent.build_configuration(category_distribution, sample_count, locales, seed)
 
@@ -244,5 +261,7 @@ def generate_dataset(
         sample_ref, scenario = generate_sample(configuration, sample_index, output_dir)
         sample_refs.append(sample_ref)
         scenarios.append(scenario)
+        if on_sample_done:
+            on_sample_done(sample_index + 1, configuration.sample_count, scenario)
 
     return dataset_exporter_agent.write_manifest(dataset_version, sample_refs, scenarios, output_dir)

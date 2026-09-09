@@ -61,6 +61,7 @@ class _TranscriptOutput(BaseModel):
 
 
 def _describe_turn_plans(conversation: Conversation, persona_by_id: dict[str, Persona]) -> str:
+    """Render each turn's plan (speaker name, intended content/emotion) for the rendering prompt."""
     lines = []
     for turn in conversation.turns:
         persona = persona_by_id.get(turn.speaker_persona_id)

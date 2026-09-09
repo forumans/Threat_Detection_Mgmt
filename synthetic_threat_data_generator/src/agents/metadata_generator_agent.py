@@ -43,6 +43,7 @@ import random
 from faker import Faker
 
 from ..schemas import CallMetadata, ChannelQuality, Conversation, Scenario
+from ._stable_hash import stable_seed
 
 # Placeholder timing estimate -- see module docstring "Other details".
 _AVG_TURN_DURATION_MS = 4000
@@ -56,7 +57,7 @@ _CHANNEL_INFO_BY_QUALITY: dict[ChannelQuality, dict] = {
 
 def generate_metadata(conversation: Conversation, scenario: Scenario) -> CallMetadata:
     """Generate call-level metadata for one sample."""
-    seed = abs(hash(conversation.conversation_id)) % (2**32)
+    seed = stable_seed(conversation.conversation_id)
     rng = random.Random(seed)
     faker = Faker()
     faker.seed_instance(seed)

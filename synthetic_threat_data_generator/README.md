@@ -35,7 +35,16 @@ Configuration, which validates a whole batch once, not per sample) into a
 LangGraph pipeline that produces one sample: Scenario -> Persona ->
 Conversation run as a strict chain, then Ground Truth -> Transcript ->
 Translation -> TTS -> Audio Generator run sequentially while Metadata
-Generator runs independently, and Dataset Exporter joins the two. Call it via:
+Generator runs independently, and Dataset Exporter joins the two.
+
+From a terminal, use `generate.py` (see `generate.py --help`, or
+`docs/setup/synthetic_data_gen_running-the-pipeline.md` for more examples):
+
+```powershell
+.venv\Scripts\python.exe generate.py --category threat_of_violence --count 1
+```
+
+Or call `generate_dataset` directly:
 
 ```python
 from src.orchestration.graph import generate_dataset
@@ -76,12 +85,14 @@ it's a heavy, optional dependency the unit tests don't need:
 
 ```powershell
 .venv\Scripts\pip install piper-tts
-.venv\Scripts\python -m piper.download_voices --download-dir configs\voices en_US-amy-medium en_US-ryan-high en_US-lessac-medium
+.venv\Scripts\python -m piper.download_voices --download-dir configs\voices en_US-amy-medium en_US-ryan-high en_US-hfc_male-medium en_US-hfc_female-medium
 ```
 
-(All three -- not just the default voice -- since `tts_engine_agent.py`
-deterministically assigns each persona one of the three; a run can hit any of
-them. Downloaded files land in `configs/voices/`, which is gitignored.)
+(All four -- not just one -- since `tts_engine_agent.py` assigns each
+speaker in a call a gender-appropriate voice from these two male/two female
+pools, alternating gender across speakers so two people on the same call
+never sound alike; a run can hit any of the four. Downloaded files land in
+`configs/voices/`, which is gitignored.)
 
 ## Running tests
 

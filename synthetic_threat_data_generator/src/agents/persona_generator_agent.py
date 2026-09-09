@@ -45,6 +45,7 @@ from faker import Faker
 
 from .. import llm_client
 from ..schemas import Persona, Scenario
+from ._stable_hash import stable_seed
 
 _PITCH_RANGES = ["low", "medium", "high"]
 _PACES = ["slow", "medium", "fast"]
@@ -105,8 +106,9 @@ def generate_personas(scenario: Scenario) -> list[Persona]:
     roles = _assign_roles(scenario.num_speakers)
 
     # Deterministic per-scenario seed, so the same scenario always produces
-    # the same personas.
-    seed = abs(hash(scenario.scenario_id)) % (2**32)
+    # the same personas -- stable_seed, not hash(), so this reproduces across
+    # separate process runs too (see _stable_hash.py).
+    seed = stable_seed(scenario.scenario_id)
     rng = random.Random(seed)
     faker = _build_faker(scenario.locale, seed)
 

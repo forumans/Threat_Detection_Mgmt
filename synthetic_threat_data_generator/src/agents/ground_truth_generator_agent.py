@@ -55,6 +55,7 @@ _PROSODY_NOTES_BY_SEVERITY: dict[Severity, str] = {
 
 
 def _find_turn_plan(conversation: Conversation, turn_index: int) -> ConversationTurnPlan:
+    """Look up one turn's plan by index, raising if the conversation has no such turn."""
     for turn in conversation.turns:
         if turn.turn_index == turn_index:
             return turn

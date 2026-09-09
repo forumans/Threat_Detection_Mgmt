@@ -199,3 +199,26 @@ def test_generate_dataset_runs_one_sample_per_configured_count(monkeypatch, tmp_
     assert len(manifest_calls["sample_refs"]) == 3
     assert len(manifest_calls["scenarios"]) == 3
     assert call_counts["scenario"] == 3  # generate_scenario ran once per requested sample
+
+
+def test_generate_dataset_calls_on_sample_done_once_per_sample(monkeypatch, tmp_path):
+    call_counts: dict = {}
+    _patch_all_agents(monkeypatch, call_counts)
+    graph_module.build_graph.cache_clear()
+    monkeypatch.setattr(
+        graph_module.dataset_exporter_agent, "write_manifest",
+        lambda dataset_version, sample_refs, scenarios, output_dir: DatasetManifest(
+            dataset_version=dataset_version, generated_at="2024-01-01T00:00:00", samples=sample_refs, coverage_report={}
+        ),
+    )
+    monkeypatch.setattr(
+        graph_module.configuration_agent, "build_configuration", lambda *args, **kwargs: _configuration(sample_count=2)
+    )
+    progress_calls = []
+
+    graph_module.generate_dataset(
+        category_distribution={"benign": 1.0}, sample_count=2, locales=["en-US"], dataset_version="v1",
+        output_dir=tmp_path, on_sample_done=lambda completed, total, scenario: progress_calls.append((completed, total)),
+    )
+
+    assert progress_calls == [(1, 2), (2, 2)]

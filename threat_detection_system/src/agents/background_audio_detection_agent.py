@@ -52,6 +52,7 @@ _BACKGROUND_ENERGY_NOTABLE = 0.03
 
 @lru_cache(maxsize=1)
 def _load_vad_model():
+    """Load (and cache, via lru_cache) the Silero VAD model used to find speech regions."""
     # Imported lazily: silero-vad pulls in torch/onnxruntime, a heavy, optional
     # dependency that unit tests (which monkeypatch this function) never need
     # to install.

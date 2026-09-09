@@ -14,6 +14,23 @@ How to run the 11 agents together, now that they're wired into a graph (see
 
 ## Run it
 
+From a terminal, using the `generate.py` CLI (run from this project's root,
+with the venv active):
+
+```powershell
+# One sample with a threat (any of: verbal_abuse, threat_of_violence,
+# fraud_social_engineering, compliance_violation, benign).
+.venv\Scripts\python.exe generate.py --category threat_of_violence --count 1
+
+# A 5-sample mix: 70% verbal_abuse, 30% benign (negative controls).
+.venv\Scripts\python.exe generate.py --category verbal_abuse --weight 0.7 --category benign --weight 0.3 --count 5
+
+# All options:
+.venv\Scripts\python.exe generate.py --help
+```
+
+Or programmatically, e.g. from another script:
+
 ```python
 from src.orchestration.graph import generate_dataset
 

@@ -40,6 +40,7 @@ from ..schemas import AudioInput, STTWord, Transcript
 
 @lru_cache(maxsize=4)
 def _load_model(model_size: str, device: str):
+    """Load (and cache, via lru_cache) the faster-whisper speech-to-text model."""
     # Imported lazily: faster-whisper pulls in ctranslate2, a heavy, optional
     # dependency that unit tests (which monkeypatch this function) never need
     # to actually install or import.

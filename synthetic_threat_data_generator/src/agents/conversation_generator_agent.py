@@ -70,6 +70,7 @@ class _ConversationPlanOutput(BaseModel):
 
 
 def _describe_personas(personas: list[Persona]) -> str:
+    """Render the personas as an indexed, LLM-readable list for the planning prompt."""
     lines = [
         f"{i}: role={p.role}, name={p.voice_traits.get('name', '?')}, baseline={p.emotional_baseline}"
         for i, p in enumerate(personas)

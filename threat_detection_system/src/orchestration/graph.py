@@ -113,38 +113,45 @@ def _merge_transcript_turns(transcript: Transcript, diarization: list) -> list[T
 
 
 def _speech_to_text_node(state: CallState) -> dict:
+    """Graph node: run the Speech-to-Text Agent on the call's raw audio."""
     audio_input = AudioInput(call_id=state["call_id"], audio_path=state["audio_path"])
     return {"transcript": speech_to_text_agent.transcribe(audio_input)}
 
 
 def _speaker_diarization_node(state: CallState) -> dict:
+    """Graph node: run the Speaker Diarization Agent on the call's raw audio."""
     audio_input = AudioInput(call_id=state["call_id"], audio_path=state["audio_path"])
     return {"diarization": speaker_diarization_agent.diarize(audio_input)}
 
 
 def _background_audio_node(state: CallState) -> dict:
+    """Graph node: run the Background Audio Detection Agent on the call's raw audio."""
     audio_input = AudioInput(call_id=state["call_id"], audio_path=state["audio_path"])
     return {"background_findings": background_audio_detection_agent.detect_background_audio(audio_input)}
 
 
 def _prosody_node(state: CallState) -> dict:
+    """Graph node: run the Prosody Analysis Agent, using diarization if available."""
     audio_input = AudioInput(call_id=state["call_id"], audio_path=state["audio_path"])
     findings = prosody_analysis_agent.analyze_prosody(audio_input, diarization=state.get("diarization"))
     return {"prosody_findings": findings}
 
 
 def _emotion_node(state: CallState) -> dict:
+    """Graph node: run the Emotion Detection Agent, using diarization if available."""
     audio_input = AudioInput(call_id=state["call_id"], audio_path=state["audio_path"])
     findings = emotion_detection_agent.detect_emotion(audio_input, diarization=state.get("diarization"))
     return {"emotion_findings": findings}
 
 
 def _merge_transcript_node(state: CallState) -> dict:
+    """Graph node: merge Speech-to-Text output with Speaker Diarization into a diarized transcript."""
     turns = _merge_transcript_turns(state["transcript"], state["diarization"])
     return {"transcript_turns": turns}
 
 
 def _audio_correlation_node(state: CallState) -> dict:
+    """Graph node: run the Audio Correlation Agent, joining Prosody/Emotion/Background Audio findings."""
     findings = [
         *state.get("prosody_findings", []),
         *state.get("emotion_findings", []),
@@ -157,24 +164,29 @@ def _audio_correlation_node(state: CallState) -> dict:
 
 
 def _verbal_abuse_node(state: CallState) -> dict:
+    """Graph node: run the Verbal Abuse Detection Agent on the diarized transcript."""
     return {"verbal_abuse_findings": verbal_abuse_detection_agent.detect_verbal_abuse(state["transcript_turns"])}
 
 
 def _threat_node(state: CallState) -> dict:
+    """Graph node: run the Threat Detection Agent on the diarized transcript."""
     return {"threat_findings": threat_detection_agent.detect_threats(state["transcript_turns"])}
 
 
 def _fraud_node(state: CallState) -> dict:
+    """Graph node: run the Fraud & Social Engineering Agent on the diarized transcript."""
     findings = fraud_social_engineering_agent.detect_fraud_and_social_engineering(state["transcript_turns"])
     return {"fraud_findings": findings}
 
 
 def _compliance_node(state: CallState) -> dict:
+    """Graph node: run the Compliance Detection Agent on the diarized transcript."""
     findings = compliance_detection_agent.detect_compliance_violations(state["transcript_turns"])
     return {"compliance_findings": findings}
 
 
 def _transcript_correlation_node(state: CallState) -> dict:
+    """Graph node: run the Transcript Correlation Agent, joining all four transcript-detection findings."""
     findings = [
         *state.get("verbal_abuse_findings", []),
         *state.get("threat_findings", []),
@@ -188,6 +200,7 @@ def _transcript_correlation_node(state: CallState) -> dict:
 
 
 def _decision_node(state: CallState) -> dict:
+    """Graph node: run the Threat Correlation & Decision Agent, joining both domain scores."""
     assessment = threat_correlation_decision_agent.make_threat_assessment(
         state["audio_domain_score"], state["transcript_domain_score"]
     )

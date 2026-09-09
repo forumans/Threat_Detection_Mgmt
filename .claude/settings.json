@@ -9,7 +9,27 @@
       "Bash(\".venv/Scripts/python.exe\" -m piper.download_voices --download-dir configs/voices en_US-ryan-high en_US-lessac-medium)",
       "Bash(git check-ignore *)",
       "Bash(grep -iE \"\\\\.env$|\\\\.venv|__pycache__|\\\\.pyc$|datasets/|\\\\.pytest_cache|configs/voices|\\\\.onnx\")",
-      "Bash(git commit -m ' *)"
+      "Bash(git commit -m ' *)",
+      "Bash(\".venv/Scripts/python.exe\" generate.py --help)",
+      "Bash(\".venv/Scripts/python.exe\" generate.py --category threat_of_violence --count 1 --output-dir datasets/v2-cli-test)",
+      "Bash(\".venv/Scripts/python.exe\" generate.py --category verbal_abuse --weight 0.8 --category benign --weight 0.2 --count 2 --output-dir datasets/v3-progress-test)",
+      "Bash(\".venv/Scripts/python.exe\" -m piper.download_voices --download-dir configs/voices en_US-hfc_male-medium en_US-hfc_female-medium)",
+      "Bash(\".venv/Scripts/python.exe\" -c \"from src.agents._stable_hash import stable_seed; print\\(stable_seed\\('persona-abc-123'\\)\\)\")",
+      "Bash(synthetic_threat_data_generator/.venv/Scripts/python.exe -c ' *)",
+      "Bash(npm --version)",
+      "Bash(npx -y @mermaid-js/mermaid-cli --version)",
+      "Read(//c/Users/pegop/AppData/Local/Temp/claude/c--Users-pegop-OneDrive-Desktop-Gopi-Workspace-Threat-Detection-Mgmt/2c3fb890-a6df-405b-a4c1-410f945b8319/scratchpad/diagrams/**)",
+      "Bash(npx -y @mermaid-js/mermaid-cli -i threat_detection_sequence.mmd -o threat_detection_sequence.svg -b white -w 2400)",
+      "Bash(echo \"---exit $?---\")",
+      "Bash(npx -y @mermaid-js/mermaid-cli -i synthetic_data_gen_sequence.mmd -o synthetic_data_gen_sequence.svg -b white -w 2400)",
+      "Bash(SCRATCH=\"/c/Users/pegop/AppData/Local/Temp/claude/c--Users-pegop-OneDrive-Desktop-Gopi-Workspace-Threat-Detection-Mgmt/2c3fb890-a6df-405b-a4c1-410f945b8319/scratchpad\" *)",
+      "Bash(cp /c/Users/pegop/AppData/Local/Temp/claude/c--Users-pegop-OneDrive-Desktop-Gopi-Workspace-Threat-Detection-Mgmt/2c3fb890-a6df-405b-a4c1-410f945b8319/scratchpad/diagrams/threat_detection_sequence.svg threat_detection_system/docs/diagrams/threat_detection_sequence-diagram.svg)",
+      "Bash(cp /c/Users/pegop/AppData/Local/Temp/claude/c--Users-pegop-OneDrive-Desktop-Gopi-Workspace-Threat-Detection-Mgmt/2c3fb890-a6df-405b-a4c1-410f945b8319/scratchpad/diagrams/synthetic_data_gen_sequence.svg synthetic_threat_data_generator/docs/diagrams/synthetic_data_gen_sequence-diagram.svg)",
+      "Bash(awk '/```mermaid/{flag=1;next}/```/{flag=0}flag' \"threat_detection_system/docs/diagrams/threat_detection_sequence-diagram.md\")",
+      "Bash(awk '/```mermaid/{flag=1;next}/```/{flag=0}flag' \"synthetic_threat_data_generator/docs/diagrams/synthetic_data_gen_sequence-diagram.md\")"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\pegop\\OneDrive\\Desktop\\Gopi\\Workspace\\Threat_Detection_Mgmt"
     ]
   }
 }

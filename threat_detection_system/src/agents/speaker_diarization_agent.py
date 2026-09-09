@@ -40,6 +40,7 @@ from ..schemas import AudioInput, DiarizationSegment
 
 @lru_cache(maxsize=1)
 def _load_pipeline(model_name: str, hf_token: str | None):
+    """Load (and cache, via lru_cache) the pretrained pyannote.audio diarization pipeline."""
     # Imported lazily: pyannote.audio pulls in torch, a heavy, optional
     # dependency that unit tests (which monkeypatch this function) never need
     # to actually install or import.
