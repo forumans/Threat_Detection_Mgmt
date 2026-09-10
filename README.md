@@ -1,7 +1,8 @@
 # Threat Detection Mgmt
 
-This repository holds two related, independently-runnable projects that together
-form an evaluable threat-detection platform for call audio:
+A multi-agent threat-detection platform for call audio. This repository holds
+two related, independently-runnable projects that together form an evaluable
+system:
 
 | Project | Role |
 |---|---|
@@ -12,6 +13,16 @@ The two projects are deliberately decoupled — Project 1 has no knowledge of ho
 Project 2 works — and share exactly one contract: the `GroundTruthLabel` schema
 that Project 2's evaluation harness reads to score itself against Project 1's
 releases (see [§12 of the Threat Detection System's architecture plan](threat_detection_system/docs/architecture/threat_detection_architecture-plan.md#12-evaluation-loop-integration-with-project-1)).
+
+**Threat Detection Mgmt is a multi-agent system end to end.** Across both
+projects, 23 single-responsibility agents (11 in Project 1, 12 in Project 2) —
+each a stateless function that accepts a typed Pydantic model and returns one —
+are orchestrated as [LangGraph](https://github.com/langchain-ai/langgraph)
+graphs rather than a monolithic pipeline: agents fan out to run in parallel
+wherever their inputs allow it, join at correlation/aggregation points, and
+never call each other directly. That design is what makes each agent
+independently testable, replaceable, and (in Project 2) independently scored
+against Project 1's ground truth.
 
 ## Architecture
 
@@ -108,6 +119,36 @@ explainable risk assessment:
   analysis is an explicit, deferred Phase 2 extension.
 
 Full design: [`docs/architecture/threat_detection_architecture-plan.md`](threat_detection_system/docs/architecture/threat_detection_architecture-plan.md) · database model: [`docs/database/threat_detection_database-model.md`](threat_detection_system/docs/database/threat_detection_database-model.md) · sequence diagram: [`docs/diagrams/`](threat_detection_system/docs/diagrams/).
+
+## Tools & Technologies
+
+Every agent's external calls — LLM, speech-to-text, text-to-speech, alert
+delivery — go through a small provider interface (`LLMClient`, `STTClient`,
+`TTSClient`, `NotificationChannel`) rather than a hardcoded vendor SDK, so the
+concrete tool behind each is swapped via config. The tools currently wired in:
+
+| Category | Synthetic Threat Data Generator (Project 1) | Threat Detection System (Project 2) |
+|---|---|---|
+| Agent orchestration | [LangGraph](https://github.com/langchain-ai/langgraph) | [LangGraph](https://github.com/langchain-ai/langgraph) |
+| Agent development | [PydanticAI](https://ai.pydantic.dev/) | [PydanticAI](https://ai.pydantic.dev/) |
+| LLM abstraction | [LiteLLM](https://github.com/BerriAI/litellm) (OpenAI by default) | [LiteLLM](https://github.com/BerriAI/litellm) (OpenAI by default) |
+| Speech-to-text | — | [faster-whisper](https://github.com/SYSTRAN/faster-whisper) |
+| Speaker diarization | — | [pyannote.audio](https://github.com/pyannote/pyannote-audio) |
+| Emotion recognition | — | [SpeechBrain](https://speechbrain.github.io/) |
+| Voice activity detection | — | [Silero VAD](https://github.com/snakers4/silero-vad) |
+| Text-to-speech | [Piper TTS](https://github.com/rhasspy/piper) | — |
+| Audio processing | librosa, pydub, soundfile, FFmpeg | librosa, torchaudio, pydub, soundfile |
+| Synthetic data generation | Faker, Mimesis | — |
+| Backend / API | FastAPI, Uvicorn, Pydantic, SQLAlchemy | FastAPI, Uvicorn, Pydantic, SQLAlchemy |
+| Database / storage | PostgreSQL, S3-compatible object storage (MinIO) | PostgreSQL, S3-compatible object storage (MinIO) |
+| Config | pydantic-settings, PyYAML, python-dotenv | pydantic-settings, PyYAML, python-dotenv |
+| Testing | pytest, hypothesis | pytest, hypothesis, pytest-mock |
+| Packaging | Poetry | Poetry |
+
+See each project's `pyproject.toml` for exact dependency versions, and
+[`docs/architecture/tech_stack_guidelines.md`](threat_detection_system/docs/architecture/tech_stack_guidelines.md)
+for the broader recommended stack (dashboard, caching, monitoring, etc.) that
+Phase 1 hasn't needed yet.
 
 ## Getting started
 
